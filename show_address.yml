@@ -1,0 +1,35 @@
+---
+- name: Some NSO fun
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    username: "developer"
+    password: "C1sco12345"
+    url: "https://10.10.20.49:443/jsonrpc"
+    perform_backup: no
+
+  tasks: 
+
+    - set_fact:
+        xpath: /ncs:devices/device
+      when: target is not defined
+
+    - set_fact:
+        xpath: '/ncs:devices/device[name="{{ target }}"]'
+      when: target is defined
+
+    - name: Select device name and description
+      nso_query:
+        username: "{{ username }}"
+        password: "{{ password }}"
+        url: "{{ url }}"
+        xpath: "{{ xpath }}"
+        fields:
+          - name
+          - address
+      register: r_query
+
+    - debug: 
+        var: r_query
+

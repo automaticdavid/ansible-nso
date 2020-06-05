@@ -1,0 +1,2 @@
+[all]
+dist-sw01 ansible_host=10.10.20.177 ansible_user=cisco ansible_password=cisco ansible_network_os=nxos ansible_connection=network_cli

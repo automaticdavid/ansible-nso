@@ -1,0 +1,39 @@
+---
+- name: Some NSO fun
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    username: "developer"
+    password: "C1sco12345"
+    url: "https://10.10.20.49:443/jsonrpc"
+    perform_backup: no
+
+
+  tasks: 
+
+    - name: Check Sync for one device
+      nso_action:
+        username: "{{ username }}"
+        password: "{{ password }}"
+        url: "{{ url }}"
+        path: /ncs:devices/check-sync
+        input: { "device": ["edge-sw01"] }
+      changed_when: False
+      register: r_sync
+
+    - debug:
+        var: r_sync
+
+    - name: Check all sync
+      nso_action:
+        username: "{{ username }}"
+        password: "{{ password }}"
+        url: "{{ url }}"
+        path: /ncs:devices/check-sync
+        input: {}
+      changed_when: False
+      register: r_sync
+
+    - debug:
+        var: r_sync

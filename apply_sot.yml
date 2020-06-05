@@ -1,0 +1,63 @@
+---
+- name: Some NSO fun
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    username: "developer"
+    password: "C1sco12345"
+    url: "https://10.10.20.49:443/jsonrpc"
+    perform_backup: no
+
+
+  tasks: 
+
+    - name: Load device SOT for {{ target }}
+      include_vars:
+        file: backups/core-rtr01
+        name: sot
+
+    - name: Verify device full config from SOT for {{ target }}
+      nso_verify:
+        username: "{{ username }}"
+        password: "{{ password }}"
+        url: "{{ url }}"
+        data: "{{ sot }}" 
+      register: r_verify_pre
+      failed_when: False
+
+    - debug:
+        var: r_verify_pre
+
+    - meta: end_play
+      when: r_verify_pre.violations is not defined
+
+    - name: Apply SOT
+      nso_config:
+        username: "{{ username }}"
+        password: "{{ password }}"
+        url: "{{ url }}"
+        data: "{{ sot }}"
+
+    - name: Verify device full config from SOT for {{ target }}
+      nso_verify:
+        username: "{{ username }}"
+        password: "{{ password }}"
+        url: "{{ url }}"
+        data: "{{ sot }}"
+      register: r_verify_post
+      failed_when: False
+
+    - name: Check Sync for {{ target }}
+      nso_action:
+        username: "{{ username }}"
+        password: "{{ password }}"
+        url: "{{ url }}"
+        path: /ncs:devices/check-sync
+        input: { "device": [ "{{ target }}" ] }
+      changed_when: False
+      register: r_sync
+
+    - debug:
+        var: r_sync
+

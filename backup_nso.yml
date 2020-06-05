@@ -1,0 +1,51 @@
+---
+- name: Some NSO fun
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    username: "developer"
+    password: "C1sco12345"
+    url: "https://10.10.20.49:443/jsonrpc"
+    perform_backup: no
+
+
+  tasks: 
+
+    - name: Create backup directory
+      file: 
+        path: ./backups
+        state: directory
+      run_once: yes
+
+    - name: Select device names
+      nso_query:
+        username: "{{ username }}"
+        password: "{{ password }}"
+        url: "{{ url }}"
+        xpath: /ncs:devices/device
+        fields:
+          - name
+      register: r_devices
+
+    - name: Get config for all devices
+      nso_show:
+        username: "{{ username }}"
+        password: "{{ password }}"
+        url: "{{ url }}"
+        path: '/ncs:devices/ncs:device{"{{ item }}"}/ncs:config'
+        operational: no
+      register: r_show_devices
+      with_items: "{{ r_devices.output }}"
+
+    - debug: 
+        var: r_show_devices
+        verbosity: 3
+
+    - name: Backup device config
+      copy:
+        content: "{{ item.output.data | to_nice_yaml}}"
+        dest: "backups/{{ item.item }}"
+      with_items: "{{ r_show_devices.results }}"
+      loop_control:
+        label: "{{ item.item }}"

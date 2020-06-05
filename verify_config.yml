@@ -1,0 +1,32 @@
+---
+- name: Some NSO fun
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    username: "developer"
+    password: "C1sco12345"
+    url: "https://10.10.20.49:443/jsonrpc"
+    perform_backup: no
+
+  tasks: 
+
+    - name: Verify specific config for given device
+      nso_verify:
+        username: "{{ username }}"
+        password: "{{ password }}"
+        url: "{{ url }}"
+        data:
+          tailf-ncs:devices:
+            device:
+              - name: core-rtr01
+                config: 
+                  tailf-ned-cisco-ios-xr:interface:
+                    GigabitEthernet:
+                      - description: L3 Link to core-rtr02
+                        id: 0/0/0/0
+      register: r_verify
+      failed_when: False 
+
+    - debug:
+        var: r_verify
